@@ -3,6 +3,7 @@ import { createCanvas, loadImage, Image } from "canvas";
 import * as fs from "fs";
 import * as toml from "toml";
 import type { FrontStatus, Member, UserConfig } from "./types.js";
+import { loadCachedFronters, saveFronters } from "./frontierCache.js";
 
 function stripPronouns(name: string): string {
   return name.replace(/\{[^}]+\}/g, "").trim();
@@ -58,6 +59,17 @@ async function getCurrentFronters(systemId: string, token: string): Promise<{
       const allGroups = await getAllGroups(systemId, token);
       const fronters = await getCurrentFronters(systemId, token);
 
+      // Skip if no change
+      const currentFronterIds = fronters.map(f => f.front_status.member).sort();
+      const cachedFronterIds = loadCachedFronters().sort();
+
+      if (JSON.stringify(currentFronterIds) === JSON.stringify(cachedFronterIds)) {
+        console.log("🔁 No change in fronters. Skipping Slack update.");
+        continue;
+      }
+
+      saveFronters(currentFronterIds);
+
       const excludedGroupNames = (user["Exclude Groups"] ?? []).map((g) => g.toLowerCase());
       const groupReplacements = user["Group Replacements"] ?? {};
       const fallbackReplacement = user["Excluded Replacement"] ?? null;
@@ -79,11 +91,8 @@ async function getCurrentFronters(systemId: string, token: string): Promise<{
       const seenMemberIds = new Set<string>();
       const frontingIds = new Set<string>(fronters.map(f => f.front_status.member));
 
-      // Process each fronter
       for (const fr of fronters) {
         const id = fr.front_status.member;
-        console.log(`🔍 Checking fronter ${fr.member.name} (ID: ${id})`);
-
         if (excludedMemberIds.has(id)) {
           for (const group of allGroups) {
             const name = group.content.name.toLowerCase();
@@ -115,10 +124,10 @@ async function getCurrentFronters(systemId: string, token: string): Promise<{
 
         if (replacement) {
           if (seenMemberIds.has(replacement.id)) {
-            console.log(`⚠️ Replacement ${replacement.content.name} already added. Skipping duplicate.`);
+            console.log(`⚠️ Replacement ${replacement.content.name} already added.`);
             continue;
           }
-          console.log(`➕ Using replacement: ${replacement.content.name} (ID: ${replacement.id})`);
+          console.log(`➕ Using replacement: ${replacement.content.name}`);
           visibleMembers.push({
             member: replacement.content,
             front_status: {
@@ -129,7 +138,7 @@ async function getCurrentFronters(systemId: string, token: string): Promise<{
           });
           seenMemberIds.add(replacement.id);
         } else if (fallbackReplacement) {
-          console.log(`⚠️ Using fallback for group "${group}": ${fallbackReplacement.Name}`);
+          console.log(`⚠️ Using fallback: ${fallbackReplacement.Name}`);
           visibleMembers.push({
             member: {
               name: fallbackReplacement.Name,
@@ -146,7 +155,7 @@ async function getCurrentFronters(systemId: string, token: string): Promise<{
             },
           });
         } else {
-          console.warn(`❌ No replacement found for group "${group}"`);
+          console.warn(`❌ No replacement for excluded group "${group}"`);
         }
       }
 
