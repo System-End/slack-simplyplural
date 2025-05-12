@@ -1,0 +1,20 @@
+[[users]]
+"System Name" = "System-name"
+"Simply Plural Token" = "your-simplyplural-token"
+"Simply Plural ID" = "your-system-id"
+"Slack User Token" = "xoxp-your-slack-token"
+"Default Avatar" = "https://example.com/default-avatar.png"
+
+# Optional list of group names to exclude (case-insensitive match)
+"Exclude Groups" = ["Group1", "Group2"]
+
+# Mapping from excluded group name (lowercase) to a replacement member ID
+[users."Group Replacements"]
+littles = "member-id-for-replacement-for-group1"
+bots = "member-id-for-replacement-for-group2"
+
+# Fallback replacement if no specific group replacement is found
+[users."Excluded Replacement"]
+Name = "Private"
+Pronouns = "they/them"
+Avatar = "https://example.com/private-avatar.png"
