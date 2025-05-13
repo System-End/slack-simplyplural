@@ -1,5 +1,7 @@
 # slack-simplyplural
 
+Credit for the base code goes to https://github.com/dainfloop! I modified it to include exclusions and remove pronouns if you have them in the name.
+
 Keep your Slack profile synced with SimplyPlural fronters. Built for systems who want to reflect who's fronting in real time — with the ability to exclude groups and set visual replacements.
 
 GitHub: https://github.com/System-End/slack-simplyplural
