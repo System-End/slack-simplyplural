@@ -1,4 +1,5 @@
 # slack-simplyplural
+
 Credit for most of the code goes to https://github.com/dainfloop! I modified it to include exclusions and remove pronouns if you have them in the name.
 
 Keep your Slack profile in sync with your current fronters in SimplyPlural. This script updates your Slack display name, pronouns, and profile picture to reflect who's fronting — while letting you exclude certain groups and optionally use replacement members instead.
@@ -15,30 +16,46 @@ Keep your Slack profile in sync with your current fronters in SimplyPlural. This
 
 You’ll need:
 
-* A Slack user token (not a bot token) with users.profile\:write and users.setPhoto scopes
+* A Slack user token (not a bot token) with `users.profile:write` and `users.setPhoto` scopes
 * Your SimplyPlural system ID and API token
-* Node.js or Bun (recommended if you’re on Windows)
-* Some way to run TypeScript (ts-node, bun, or compile with tsc)
+* Node.js (recommended for Linux/macOS and Raspberry Pi) or Bun (recommended for Windows)
+* TypeScript runtime (ts-node for Node.js or Bun for Windows)
 
 ## 1. Install dependencies
 
-If you’re using Bun (recommended on Windows):
+### On Windows (using Bun):
+
+Install Bun:
+
+```bash
+curl -fsSL https://bun.sh/install | bash
+```
+
+Then:
 
 ```bash
 bun install
 ```
 
-If you're using npm:
+### On Linux/Raspberry Pi/macOS (using Node.js):
+
+Install system dependencies:
+
+```bash
+sudo apt update
+sudo apt install -y nodejs npm build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
+```
+
+Then install project dependencies:
 
 ```bash
 npm install
+npm install -g ts-node typescript
 ```
-
-If canvas fails to build on npm, use Bun or prebuilt binaries.
 
 ## 2. Configure users.toml
 
-Rename users.toml.example to users.toml, make a slack app, go to OAUTH, make sure it has profile write in the **USER** scopes, then install to your space. Go to SimplyPlural, settings, account, tokens, select read and then copy it to the users.toml file
+Rename users.toml.example to users.toml, make a Slack app, go to OAUTH, make sure it has profile write in the **USER** scopes, then install to your space. Go to SimplyPlural, settings → account → tokens, select "read" and copy it into the users.toml file.
 
 Notes:
 
@@ -48,22 +65,69 @@ Notes:
 
 ## 3. Run it
 
-If you’re using Bun:
+### On Windows (with Bun):
 
 ```bash
 bun index.ts
 ```
 
-With ts-node:
+### On Linux/macOS/Raspberry Pi (with Node.js):
+
+Run using ts-node in ESM mode:
 
 ```bash
-npx ts-node index.ts
+npx ts-node --loader ts-node/esm index.ts
 ```
 
-Or compile TypeScript first:
+Or compile and run:
 
 ```bash
 npx tsc && node index.js
+```
+
+## 4. Run it as a cron job (Linux / Pi)
+
+Edit crontab:
+
+```bash
+crontab -e
+```
+
+Add a line like this (adjust path as needed):
+
+```bash
+*/5 * * * * cd /home/youruser/slack-simplyplural && npx ts-node --loader ts-node/esm index.ts >> log.txt 2>&1
+```
+
+## 5. Minimal TypeScript compatibility setup
+
+Ensure your tsconfig.json contains:
+
+```json
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "es2022",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true
+  }
+}
+```
+
+Ensure your package.json contains:
+
+```json
+{
+  "type": "module"
+}
+```
+
+Make sure all local imports include ".js" extensions, like:
+
+```ts
+import { loadCachedFronters } from "./frontierCache.js";
 ```
 
 ## What shows up in Slack
@@ -74,7 +138,17 @@ npx tsc && node index.js
 
 ## Troubleshooting
 
-* If SimplyPlural returns 401 or 403, make sure your token is correct
+* If SimplyPlural returns 401 or 403, make sure your token starts with `Bearer ` and is valid
 * Slack tokens must be user tokens — bot tokens won’t work for profile updates
-* If canvas won’t build on npm, try Bun or install native dependencies for node-canvas
-* Make sure that all profile pictures are the same size!
+* If canvas fails to build, install native packages (on Linux) or use Bun (on Windows)
+* Make sure all profile pictures are square and the same size for best results
+
+## Compatibility Notes
+
+* Bun is great for Windows users but has limited support for native modules like canvas on Linux/ARM.
+* Use Node.js + ts-node for Linux, macOS, and Raspberry Pi to avoid native module issues.
+* The project is designed to support both platforms with minimal configuration — just choose the right runtime.
+
+---
+
+Let us know if you encounter any issues or want help setting this up for your system!

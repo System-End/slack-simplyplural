@@ -3,19 +3,16 @@ export interface Member {
   content: {
     name: string;
     pronouns: string;
-    avatarUrl?: string;
-    description?: string;
-    custom?: string;
-    groups?: string[];
+    avatarUrl: string;
+    groups: string[];
   };
 }
 
 export interface FrontStatus {
-  id: string;
   content: {
     member: string;
-    custom: boolean;
     timestamp: string;
+    custom: boolean;
   };
 }
 
@@ -26,7 +23,7 @@ export interface UserConfig {
   "Slack User Token": string;
   "Default Avatar": string;
   "Exclude Groups"?: string[];
-  "Group Replacements"?: Record<string, string>; // group name → replacement member ID
+  "Group Replacements"?: Record<string, string>;
   "Excluded Replacement"?: {
     Name: string;
     Pronouns: string;
