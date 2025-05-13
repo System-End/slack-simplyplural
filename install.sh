@@ -101,3 +101,4 @@ Run manually with: $RUNTIME
 Remove with: bash uninstall-slack-simplyplural.sh
 
 GitHub: https://github.com/System-End/slack-simplyplural
+FINAL
