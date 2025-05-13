@@ -78,6 +78,7 @@ for (const user of users) {
     const seen = new Set<string>();
     const frontingIds = new Set(fronters.map((f) => f.front_status.member));
     const triggeredGroups = new Set<string>();
+    const replacedGroups = new Set<string>();
 
     for (const f of fronters) {
       if (excludedMemberIds.has(f.front_status.member)) {
@@ -97,7 +98,7 @@ for (const user of users) {
       const replacementId = groupReplacements[group.toLowerCase()];
       if (replacementId) {
         const repl = allMembers.find((m) => m.id === replacementId);
-        if (repl && !frontingIds.has(replacementId) && !seen.has(replacementId)) {
+        if (repl && !seen.has(replacementId)) {
           final.push({
             member: repl.content,
             front_status: {
@@ -107,9 +108,14 @@ for (const user of users) {
             },
           });
           seen.add(repl.id);
+          replacedGroups.add(group);
           console.log(`Replaced group \"${group}\" with ${repl.content.name}`);
         }
-      } else if (!replacementId && fallback && !final.some((f) => f.member.name === fallback.Name)) {
+      }
+    }
+
+    for (const group of triggeredGroups) {
+      if (!replacedGroups.has(group) && fallback && !final.some((f) => f.member.name === fallback.Name)) {
         final.push({
           member: {
             name: fallback.Name,
